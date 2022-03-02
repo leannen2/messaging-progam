@@ -14,24 +14,25 @@ from NaClProfile import NaClProfile
 
 DataTuple = namedtuple('DataTuple', ['type', 'message', 'token'])
 
-# Extracts a json string into a dictionary and then returns the values as a DataTuple
+# Extracts a json string into a dictionary
 def extract_json(json_msg:str) -> DataTuple:
     '''
     Call the json.loads function on a json string and convert it to a DataTuple object
     '''
     try:
         json_obj = json.loads(json_msg)
-            
-        d_type = json_obj['response']['type']
-        d_message = json_obj['response']['message']
-        try:
-            d_token = json_obj['response']['token']
-        except:
-            d_token = ''
     except json.JSONDecodeError:
         print("Json cannot be decoded.")
+    return json_obj
 
-    return DataTuple(d_type, d_message, d_token)
+# returns the messages from the response dictionary in a list
+def extract_messages(response_dict: dict) -> list:
+    if response_dict['response']['type'] == 'ok':
+        messages = response_dict['response']['messages']
+        return messages
+    else:
+        print('No messages to extract.')
+        return False
 
 # Generates the join message to send to the server
 def gen_join_message(username, password, client_pub_key):
@@ -62,7 +63,7 @@ def gen_get_unread_message(client_pub_key):
     return message
 
 def gen_all_messages(client_pub_key):
-    all_dict = {"token": client_pub_key, "directmessage": "new"}
+    all_dict = {"token": client_pub_key, "directmessage": "all"}
     message = json.dumps(all_dict)
     return message
 

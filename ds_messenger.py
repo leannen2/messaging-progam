@@ -14,8 +14,8 @@ class DirectMessage:
 
 class DirectMessenger:
     def __init__(self, dsuserver=None, username=None, password=None):
-        self.na = NaClProfile()
-        self.na.generate_keypair()
+        # self.na = NaClProfile()
+        # self.na.generate_keypair()
         self.dsuserver = dsuserver
         self.username = username
         self.password = password
@@ -23,9 +23,9 @@ class DirectMessenger:
             
     def send(self, message:str, recipient:str) -> bool:
         # returns true if message successfully sent, false if send failed.
-        encrypted_message = self.na.encrypt_entry(message, self.token)
-        print('encrypted_message: ', encrypted_message)
-        direct_message = dsp.gen_direct_message(self.token, encrypted_message,recipient)
+        # encrypted_message = self.na.encrypt_entry(message, self.token)
+        # print('encrypted_message: ', encrypted_message)
+        direct_message = dsp.gen_direct_message(self.token, message,recipient)
         response_json = self._send_to_server(direct_message)
         response_type = dsp.extract_response_type(response_json)
         if response_type == 'ok':
@@ -44,15 +44,13 @@ class DirectMessenger:
     
     # Sends the join message to the server and returns the token received from the server if the user successfully joins the server, Returns False if the joining was unsuccessful
     def _join(self, client, user, pwd):
-        join_msg = dsp.gen_join_message(user, pwd, self.na.public_key)
+        join_msg = dsp.gen_join_message(user, pwd, '')
 
         client.sendall(join_msg.encode('utf-8'))
         srv_msg = client.recv(4096)
         decoded_msg = srv_msg.decode('utf-8')
         recv_json = dsp.extract_json(decoded_msg)
-        print('recv_json: ',recv_json)
         if dsp.extract_response_type(recv_json) == 'ok':
-            print('join successful')
             return recv_json['response']['token']
         elif recv_json.type == 'error':
             print(recv_json.message)
@@ -67,8 +65,6 @@ class DirectMessenger:
                 client.connect((self.dsuserver, PORT))
             except ConnectionRefusedError:
                 print('connection refused')
-
-            print(f"client connected to {HOST} on {PORT}")
 
             while True:
                 self.token = self._join(client, self.username, self.password)
@@ -92,12 +88,10 @@ class DirectMessenger:
             except ConnectionRefusedError:
                 print('connection refused')
 
-            print(f"client connected to {HOST} on {PORT}")
-
             token = self._join(client, self.username, self.password)
-            return token
-            if self.token is False:
+            if token is False:
                 print('connection to server unsuccessful')
+            return token
 
 if __name__ == '__main__':
     messenger = DirectMessenger(HOST, 'lean', 'thisisapwd')

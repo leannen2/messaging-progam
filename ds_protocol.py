@@ -16,14 +16,14 @@ DataTuple = namedtuple('DataTuple', ['type', 'message', 'token'])
 
 # Extracts a json string into a dictionary
 def extract_json(json_msg:str) -> DataTuple:
-    '''
-    Call the json.loads function on a json string and convert it to a DataTuple object
-    '''
     try:
         json_obj = json.loads(json_msg)
     except json.JSONDecodeError:
         print("Json cannot be decoded.")
     return json_obj
+
+def extract_response_type(response_dict: dict) -> str:
+    return response_dict['response']['type']
 
 # returns the messages from the response dictionary in a list
 def extract_messages(response_dict: dict) -> list:

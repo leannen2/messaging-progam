@@ -109,8 +109,8 @@ class DirectMessenger(dict):
             return token
 
 if __name__ == '__main__':
-    messenger = DirectMessenger(HOST, 'leanyash', 'thisisapwd')
-    messenger.send('hello2', 'markLeanneYash')
+    messenger = DirectMessenger(HOST, 'markLeanneYash', 'thisisapwd')
+    messenger.send('hello2', 'leanyash')
     # new = messenger.retrieve_new()
     # for message in new:
     #     print(message.message, message.recipient, message.timestamp)

@@ -30,7 +30,7 @@ class Body(tk.Frame):
         self.root = root
         self._select_callback = select_callback
 
-        # a list of the Post objects available in the active DSU file
+        # list of contacts loaded from the dsu file
         self.contacts = []
 
         # After all initialization is complete, call the _draw method to pack the widgets
@@ -44,7 +44,8 @@ class Body(tk.Frame):
 
     def node_select(self, event):
         index = int(self.posts_tree.selection()[0])
-        entry = self.contacts[index]
+        entry = self.contacts_msg[index]
+        print('entry')
         self.set_text_entry(entry)
 
     """
@@ -67,8 +68,8 @@ class Body(tk.Frame):
     Populates the self._posts attribute with posts from the active DSU file.
     """
 
-    def set_posts(self, posts: list):
-        self._posts = posts
+    def set_msg(self, contacts: list):
+        self.contacts = contacts
         for id, post in enumerate(self._posts):
             self._insert_post_tree(id, post)
 

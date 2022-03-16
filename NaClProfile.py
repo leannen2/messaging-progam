@@ -63,6 +63,12 @@ class MessengerProfile(Profile):
         else:
             print('contact not in retrived msg')
             return []
+
+    def get_msg_log_for_all_contacts(self):
+        msg_dict = {}
+        for contact in self.retrieved_msg:
+            msg_dict[contact] = self.gen_msg_thread(contact)
+        return msg_dict
     
     def gen_msg_thread(self, contact: str):
         retrieved = self.get_msg_from_contact(contact)
@@ -73,6 +79,9 @@ class MessengerProfile(Profile):
             else:
                 msg_thread += f'me: {msg.message}\n\n'
         return msg_thread
+
+    def get_msg(self):
+        return self.retrieved_msg
 
     def load_profile(self, path: str) -> None:
         p = Path(path)
@@ -111,5 +120,9 @@ if __name__ == '__main__':
     # for message in messages:
     #     print(message, messages[message])
     msg_thread = profile.gen_msg_thread('leanyash')
-    print(msg_thread)
-    
+    # print(msg_thread)
+
+    msgs = profile.get_msg_log_for_all_contacts()
+    for contact, msg in msgs.items():
+        print(contact)
+        print(msg)

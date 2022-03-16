@@ -12,9 +12,10 @@ import tkinter as tk
 from tkinter import ttk, filedialog, messagebox, simpledialog
 from turtle import bgcolor
 from Profile import Post
-from NaClProfile import NaClProfile
-import ds_client
-import ds_protocol
+from NaClProfile import MessengerProfile
+# import ds_client
+import ds_protocol as dsp
+import ds_messenger as ds_msg
 
 
 """
@@ -30,7 +31,7 @@ class Body(tk.Frame):
         self._select_callback = select_callback
 
         # a list of the Post objects available in the active DSU file
-        self._posts = [Post]
+        self.contacts = []
 
         # After all initialization is complete, call the _draw method to pack the widgets
         # into the Body instance
@@ -43,7 +44,7 @@ class Body(tk.Frame):
 
     def node_select(self, event):
         index = int(self.posts_tree.selection()[0])
-        entry = self._posts[index].entry
+        entry = self.contacts[index]
         self.set_text_entry(entry)
 
     """
@@ -119,33 +120,31 @@ class Body(tk.Frame):
         self.posts_tree.bind("<<TreeviewSelect>>", self.node_select)
         self.posts_tree.pack(fill=tk.BOTH, side=tk.TOP,
                              expand=True, padx=5, pady=5)
-
+        # main frame
         entry_frame = tk.Frame(master=self, bg="")
         entry_frame.pack(fill=tk.BOTH, side=tk.TOP, expand=True)
-
-        #####
-        msg_frame = tk.Frame(master=self, bg="")
-        msg_frame.pack(fill=tk.BOTH, side=tk.BOTTOM, expand=True)
-
-        editor_frame = tk.Frame(master=entry_frame, bg="red")
-        editor_frame.pack(fill=tk.BOTH, side=tk.LEFT, expand=True)
+        # 
+        messages_frame = tk.Frame(master=entry_frame, bg="red")
+        messages_frame.pack(fill=tk.BOTH, side=tk.LEFT, expand=True)
 
         scroll_frame = tk.Frame(master=entry_frame, bg="blue", width=10)
         scroll_frame.pack(fill=tk.BOTH, side=tk.LEFT, expand=False)
 
-        self.entry_editor = tk.Text(editor_frame, width=0)
-        self.entry_editor.pack(fill=tk.BOTH, side=tk.LEFT,
-                               expand=True, padx=0, pady=0)
+        self.msg_text = tk.Text(messages_frame, width=0)
+        self.msg_text.pack(fill=tk.BOTH, side=tk.LEFT, expand=True, padx=0, pady=0)
 
-        entry_editor_scrollbar = tk.Scrollbar(
-            master=scroll_frame, command=self.entry_editor.yview)
-        self.entry_editor['yscrollcommand'] = entry_editor_scrollbar.set
-        entry_editor_scrollbar.pack(
+        msg_scrollbar = tk.Scrollbar(
+            master=scroll_frame, command=self.msg_text.yview)
+        self.msg_text['yscrollcommand'] = msg_scrollbar.set
+        msg_scrollbar.pack(
             fill=tk.Y, side=tk.LEFT, expand=False, padx=0, pady=0)
 
-        '''self.msgentry_editor = tk.Text(msg_frame, width=0)
+        entry_frame = tk.Frame(master=self, bg="blue")
+        entry_frame.pack(fill=tk.BOTH, side=tk.BOTTOM, expand=True)
+
+        self.msgentry_editor = tk.Text(entry_frame, width=0)
         self.msgentry_editor.pack(
-            fill=tk.X, side=tk.TOP, expand=True)'''
+            fill=tk.BOTH, side=tk.BOTTOM, expand=True)
         # this sets the entry but takes over the Send button
 
 
@@ -228,7 +227,7 @@ class MainApp(tk.Frame):
         self._is_online = False
         self._profile_filename = None
         # Initialize a new NaClProfile and assign it to a class attribute.
-        self._current_profile = NaClProfile()
+        self._current_profile = MessengerProfile()
 
         # After all initialization is complete, call the _draw method to pack the widgets
         # into the root frame
@@ -243,8 +242,7 @@ class MainApp(tk.Frame):
             filename = tk.filedialog.asksaveasfile(
                 filetypes=[('Distributed Social Profile', '*.dsu')])
             self._profile_filename = filename.name
-            self._current_profile = NaClProfile()
-            self._current_profile.generate_keypair()
+            self._current_profile = MessengerProfile()
             self._current_profile.dsuserver = '168.235.86.101'
             self._current_profile.username = 'iJustGotDivorced'
             self._current_profile.password = 'KanyeYE'
@@ -264,7 +262,7 @@ class MainApp(tk.Frame):
             filename = tk.filedialog.askopenfile(
                 filetypes=[('Distributed Social Profile', '*.dsu')])
             self._profile_filename = filename.name
-            self._current_profile = NaClProfile()
+            self._current_profile = MessengerProfile()
             self._current_profile.load_profile(self._profile_filename)
             print(self._current_profile.username)
             self._current_profile.import_keypair(self._current_profile.keypair)
@@ -299,13 +297,13 @@ class MainApp(tk.Frame):
     Publishes to the server if online widget is checked
     """
 
-    def publish(self, post: Post):
-        host = '168.235.86.101'
-        port = 3021
-        usr = self._current_profile.username
-        pwd = self._current_profile.password
-        entry = post['entry']
-        ds_client.send(host, port, usr, pwd, entry)
+    # def publish(self, post: Post):
+    #     host = '168.235.86.101'
+    #     port = 3021
+    #     usr = self._current_profile.username
+    #     pwd = self._current_profile.password
+    #     entry = post['entry']
+    #     ds_client.send(host, port, usr, pwd, entry)
 
     """
     A callback function for responding to changes to the online chk_button.
@@ -330,6 +328,16 @@ class MainApp(tk.Frame):
 
         #messagebox.showinfo('Hello!', 'Hi, {}'.format(name))
 
+    def new_messages(self):
+        user = ds_msg.DirectMessenger(
+            '168.235.86.101', 'iJustGotDivorced', 'KanyeYE')
+        x = user._send_to_server(user.retrieve_new())
+        messages = dsp.extract_messages(x)
+        for dic in messages:
+            if len(dic) > 0:
+                self.body.set_text_entry(dic['message'])
+        self.root.after(5000, self.new_messages)
+        pass
     """
     Call only once, upon initialization to add widgets to root frame
     """
@@ -369,7 +377,7 @@ if __name__ == "__main__":
 
     # This is just an arbitrary starting point. You can change the value around to see how
     # the starting size of the window changes. I just thought this looked good for our UI.
-    main.geometry("720x480")
+    main.geometry("850x670")
 
     # adding this option removes some legacy behavior with menus that modern OSes don't support.
     # If you're curious, feel free to comment out and see how the menu changes.
@@ -378,7 +386,7 @@ if __name__ == "__main__":
     # Initialize the MainApp class, which is the starting point for the widgets used in the program.
     # All of the classes that we use, subclass Tk.Frame, since our root frame is main, we initialize
     # the class with it.
-    MainApp(main)
+    app = MainApp(main)
 
     # When update is called, we finalize the states of all widgets that have been configured within the root frame.
     # Here, Update ensures that we get an accurate width and height reading based on the types of widgets
@@ -388,4 +396,5 @@ if __name__ == "__main__":
     main.update()
     main.minsize(main.winfo_width(), main.winfo_height())
     # And finally, start up the event loop for the program (more on this in lecture).
+    main.after(2000, app.new_messages)
     main.mainloop()

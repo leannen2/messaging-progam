@@ -10,7 +10,6 @@
 
 import json, Profile, time
 from collections import namedtuple
-from NaClProfile import NaClProfile
 
 DataTuple = namedtuple('DataTuple', ['type', 'message', 'token'])
 

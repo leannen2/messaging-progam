@@ -7,7 +7,7 @@
 # 26766612 and 20485372
 
 import socket
-from NaClProfile import NaClProfile
+from NaClProfile import MessengerProfile
 import ds_protocol as dsp
 
 # HOST = '127.0.0.1'
@@ -33,7 +33,7 @@ def join(client, user, pwd, user_pub_key):
         return False
 
 # Sends a message to the server to publish a post, Returns True if the publishing was successful and False if the publishing was unsuccessful
-def send_message(client, message, serv_pub_key, na: NaClProfile):
+def send_message(client, message, serv_pub_key, na: MessengerProfile):
     encrypted_message = na.encrypt_entry(message, serv_pub_key)
     print('encrypted_message: ', encrypted_message)
     send_msg = dsp.gen_post_message(na.public_key, encrypted_message)
@@ -49,7 +49,7 @@ def send_message(client, message, serv_pub_key, na: NaClProfile):
         return False
 
 # Sends a message to the server to publish a bio, Returns True if the publishing was successful and False if the publishing was unsuccessful
-def send_bio(client, bio, serv_pub_key, na: NaClProfile):
+def send_bio(client, bio, serv_pub_key, na: MessengerProfile):
     encrypted_bio = na.encrypt_entry(bio, serv_pub_key)
     print('encrypted_bio: ', encrypted_bio)
     bio_msg = dsp.gen_bio_message(na.public_key, encrypted_bio)
@@ -87,7 +87,7 @@ def send(server:str, port:int, username:str, password:str, message:str, bio:str=
         print(f"client connected to {HOST} on {PORT}")
 
         while True:
-            na = NaClProfile()
+            na = MessengerProfile()
             na.generate_keypair()
             serv_pub_key = join(client, username, password, na.public_key)
             print('serv pub key:', serv_pub_key)

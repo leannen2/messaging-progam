@@ -12,8 +12,13 @@ import tkinter as tk
 from tkinter import ttk, filedialog, messagebox, simpledialog
 from turtle import bgcolor
 from Profile import Post
+<<<<<<< HEAD
 from NaClProfile import MessengerProfile
 # import ds_client
+=======
+from NaClProfile import NaClProfile
+import ds_client
+>>>>>>> 0b6653405b3740c39de5c5322e31dd4c553a5f6a
 import ds_protocol as dsp
 import ds_messenger as ds_msg
 
@@ -124,9 +129,15 @@ class Body(tk.Frame):
         # main frame
         entry_frame = tk.Frame(master=self, bg="")
         entry_frame.pack(fill=tk.BOTH, side=tk.TOP, expand=True)
+<<<<<<< HEAD
         # 
         messages_frame = tk.Frame(master=entry_frame, bg="red")
         messages_frame.pack(fill=tk.BOTH, side=tk.LEFT, expand=True)
+=======
+
+        editor_frame = tk.Frame(master=entry_frame, bg="red")
+        editor_frame.pack(fill=tk.BOTH, side=tk.LEFT, expand=True)
+>>>>>>> 0b6653405b3740c39de5c5322e31dd4c553a5f6a
 
         scroll_frame = tk.Frame(master=entry_frame, bg="blue", width=10)
         scroll_frame.pack(fill=tk.BOTH, side=tk.LEFT, expand=False)
@@ -140,10 +151,17 @@ class Body(tk.Frame):
         msg_scrollbar.pack(
             fill=tk.Y, side=tk.LEFT, expand=False, padx=0, pady=0)
 
+<<<<<<< HEAD
         entry_frame = tk.Frame(master=self, bg="blue")
         entry_frame.pack(fill=tk.BOTH, side=tk.BOTTOM, expand=True)
 
         self.msgentry_editor = tk.Text(entry_frame, width=0)
+=======
+        msg_frame = tk.Frame(master=self, bg="blue")
+        msg_frame.pack(fill=tk.BOTH, side=tk.BOTTOM, expand=True)
+
+        self.msgentry_editor = tk.Text(msg_frame, width=0)
+>>>>>>> 0b6653405b3740c39de5c5322e31dd4c553a5f6a
         self.msgentry_editor.pack(
             fill=tk.BOTH, side=tk.BOTTOM, expand=True)
         # this sets the entry but takes over the Send button
@@ -398,4 +416,8 @@ if __name__ == "__main__":
     main.minsize(main.winfo_width(), main.winfo_height())
     # And finally, start up the event loop for the program (more on this in lecture).
     main.after(2000, app.new_messages)
+<<<<<<< HEAD
     main.mainloop()
+=======
+    main.mainloop()
+>>>>>>> 0b6653405b3740c39de5c5322e31dd4c553a5f6a

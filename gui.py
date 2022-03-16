@@ -14,7 +14,8 @@ from turtle import bgcolor
 from Profile import Post
 from NaClProfile import NaClProfile
 import ds_client
-import ds_protocol
+import ds_protocol as dsp
+import ds_messenger as ds_msg
 
 
 """
@@ -123,10 +124,6 @@ class Body(tk.Frame):
         entry_frame = tk.Frame(master=self, bg="")
         entry_frame.pack(fill=tk.BOTH, side=tk.TOP, expand=True)
 
-        #####
-        msg_frame = tk.Frame(master=self, bg="")
-        msg_frame.pack(fill=tk.BOTH, side=tk.BOTTOM, expand=True)
-
         editor_frame = tk.Frame(master=entry_frame, bg="red")
         editor_frame.pack(fill=tk.BOTH, side=tk.LEFT, expand=True)
 
@@ -143,9 +140,12 @@ class Body(tk.Frame):
         entry_editor_scrollbar.pack(
             fill=tk.Y, side=tk.LEFT, expand=False, padx=0, pady=0)
 
-        '''self.msgentry_editor = tk.Text(msg_frame, width=0)
+        msg_frame = tk.Frame(master=self, bg="blue")
+        msg_frame.pack(fill=tk.BOTH, side=tk.BOTTOM, expand=True)
+
+        self.msgentry_editor = tk.Text(msg_frame, width=0)
         self.msgentry_editor.pack(
-            fill=tk.X, side=tk.TOP, expand=True)'''
+            fill=tk.BOTH, side=tk.BOTTOM, expand=True)
         # this sets the entry but takes over the Send button
 
 
@@ -330,6 +330,16 @@ class MainApp(tk.Frame):
 
         #messagebox.showinfo('Hello!', 'Hi, {}'.format(name))
 
+    def new_messages(self):
+        user = ds_msg.DirectMessenger(
+            '168.235.86.101', 'iJustGotDivorced', 'KanyeYE')
+        x = user._send_to_server(user.retrieve_new())
+        messages = dsp.extract_messages(x)
+        for dic in messages:
+            if len(dic) > 0:
+                self.body.set_text_entry(dic['message'])
+        self.root.after(5000, self.new_messages)
+        pass
     """
     Call only once, upon initialization to add widgets to root frame
     """
@@ -369,7 +379,7 @@ if __name__ == "__main__":
 
     # This is just an arbitrary starting point. You can change the value around to see how
     # the starting size of the window changes. I just thought this looked good for our UI.
-    main.geometry("720x480")
+    main.geometry("850x670")
 
     # adding this option removes some legacy behavior with menus that modern OSes don't support.
     # If you're curious, feel free to comment out and see how the menu changes.
@@ -378,7 +388,7 @@ if __name__ == "__main__":
     # Initialize the MainApp class, which is the starting point for the widgets used in the program.
     # All of the classes that we use, subclass Tk.Frame, since our root frame is main, we initialize
     # the class with it.
-    MainApp(main)
+    app = MainApp(main)
 
     # When update is called, we finalize the states of all widgets that have been configured within the root frame.
     # Here, Update ensures that we get an accurate width and height reading based on the types of widgets
@@ -388,4 +398,5 @@ if __name__ == "__main__":
     main.update()
     main.minsize(main.winfo_width(), main.winfo_height())
     # And finally, start up the event loop for the program (more on this in lecture).
+    main.after(2000, app.new_messages)
     main.mainloop()

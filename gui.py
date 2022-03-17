@@ -6,6 +6,8 @@
 #
 # The following module provides a graphical user interface shell for the DSP journaling program.
 
+HOST = '168.235.86.101'
+PORT = 3021
 
 from logging import root
 import tkinter as tk
@@ -16,6 +18,8 @@ from NaClProfile import MessengerProfile
 # import ds_client
 import ds_protocol as dsp
 import ds_messenger as ds_msg
+from Contact import Contact
+import time
 
 
 """
@@ -44,16 +48,22 @@ class Body(tk.Frame):
 
     def node_select(self, event):
         index = int(self.posts_tree.selection()[0])
-        entry = self.contacts_msg[index]
-        print('entry')
+        entry = self.contacts[index].msg_log
         self.set_text_entry(entry)
+
+    def node_index_select(self):
+        """
+        Returns contact that is selected from the tree
+        """
+        index = int(self.posts_tree.selection()[0])
+        return self.contacts[index]
 
     """
     Returns the text that is currently displayed in the entry_editor widget.
     """
 
     def get_text_entry(self) -> str:
-        return self.entry_editor.get('1.0', 'end').rstrip()
+        return self.msgentry_editor.get('1.0', 'end').rstrip()
 
     """
     Sets the text to be displayed in the entry_editor widget.
@@ -61,26 +71,30 @@ class Body(tk.Frame):
     """
 
     def set_text_entry(self, text: str):
-        self.entry_editor.delete(0.0, 'end')
-        self.entry_editor.insert(0.0, text)
+        self.msg_text.delete(0.0, 'end')
+        self.msg_text.insert(0.0, text)
+
+    def set_bot_text_entry(self, text: str):
+        self.msgentry_editor.delete(0.0, 'end')
+        self.msgentry_editor.insert(0.0, text)
 
     """
     Populates the self._posts attribute with posts from the active DSU file.
     """
 
-    def set_msg(self, contacts: list):
+    def set_contacts(self, contacts: list):
         self.contacts = contacts
-        for id, post in enumerate(self._posts):
-            self._insert_post_tree(id, post)
+        for id, contact in enumerate(self.contacts):
+            self._insert_post_tree(id, contact)
 
     """
-    Inserts a single post to the post_tree widget.
+    Inserts a single contact to the post_tree widget.
     """
 
-    def insert_post(self, post: Post):
-        self._posts.append(post)
+    def insert_contact(self, contact: Contact):
+        self._posts.append(contact)
         id = len(self._posts) - 1  # adjust id for 0-base of treeview widget
-        self._insert_post_tree(id, post)
+        self._insert_post_tree(id, contact)
 
     """
     Resets all UI widgets to their default state. Useful for when clearing the UI is neccessary such
@@ -89,7 +103,7 @@ class Body(tk.Frame):
 
     def reset_ui(self):
         self.set_text_entry("")
-        self.entry_editor.configure(state=tk.NORMAL)
+        self.msg_text.configure(state=tk.NORMAL)
         self._posts = []
         for item in self.posts_tree.get_children():
             self.posts_tree.delete(item)
@@ -98,8 +112,8 @@ class Body(tk.Frame):
     Inserts a post entry into the posts_tree widget.
     """
 
-    def _insert_post_tree(self, id, post: Post):
-        entry = post.entry
+    def _insert_post_tree(self, id, contact: dict):
+        entry = contact.name
         # Since we don't have a title, we will use the first 24 characters of a
         # post entry as the identifier in the post_tree widget.
         if len(entry) > 25:
@@ -107,8 +121,10 @@ class Body(tk.Frame):
 
         self.posts_tree.insert('', id, id, text=entry)
 
-    def _add_contact(self, id, contact_name):
+    '''def _add_contact(self, id, contact_name):
         self.posts_tree.insert('', id, id, text=contact_name)
+        self.contacts.append(contact_name)'''
+    
 
     """
     Call only once upon initialization to add widgets to the frame
@@ -226,7 +242,7 @@ class MainApp(tk.Frame):
         tk.Frame.__init__(self, root)
         self.root = root
         self._is_online = False
-        self._profile_filename = None
+        self._profile_filename = '/Users/leannenguyen/Desktop/ics32FinalProject/messages.dsu'
         # Initialize a new NaClProfile and assign it to a class attribute.
         self._current_profile = MessengerProfile()
 
@@ -259,19 +275,17 @@ class MainApp(tk.Frame):
     """
 
     def open_profile(self):
-        try:
-            filename = tk.filedialog.askopenfile(
-                filetypes=[('Distributed Social Profile', '*.dsu')])
-            self._profile_filename = filename.name
-            self._current_profile = MessengerProfile()
-            self._current_profile.load_profile(self._profile_filename)
-            print(self._current_profile.username)
-            self._current_profile.import_keypair(self._current_profile.keypair)
-            self.body.reset_ui()
-            self.body.set_posts(self._current_profile.get_posts())
-            print(self._current_profile.keypair)
-        except:
-            print("Error")
+        # try:
+            # filename = tk.filedialog.askopenfile(
+            #     filetypes=[('Distributed Social Profile', '*.dsu')])
+            # self._profile_filename = filename.name
+        self._current_profile = MessengerProfile()
+        self._current_profile.load_profile(self._profile_filename)
+        print(self._current_profile.username)
+        self.body.reset_ui()
+        self.body.set_contacts(self._current_profile.get_contact_objs())
+        # except:
+        #     print("Error")
 
     """
     Closes the program when the 'Close' menu item is clicked.
@@ -285,14 +299,27 @@ class MainApp(tk.Frame):
     """
 
     def save_profile(self):
-        post = Post(self.body.get_text_entry())
-        self.body.insert_post(post)
-        self._current_profile.add_post(post)
+        # contact = Contact(self.body.node_index_select().name, self.body.get_text_entry())
+        # self.body.insert_contact(contact)
+        recipient = self.body.node_index_select().name
+        msg = self.body.get_text_entry()
+        
+        dir_msg = ds_msg.DirectMessage(recipient, msg, time.time(), self._current_profile.username)
+        self._current_profile.add_sent_msg(dir_msg)
         self._current_profile.save_profile(self._profile_filename)
-        self.body.set_text_entry("")
 
-        if self._is_online is True:
-            self.publish(post)
+        self.body.set_bot_text_entry("")
+        dsm = ds_msg.DirectMessenger(HOST, self._current_profile.username, self._current_profile.password)
+        dsm.send(message=msg, recipient=recipient)
+        self.body.reset_ui()
+        self.body.set_contacts(self._current_profile.get_contact_objs())
+        index = int(self.body.posts_tree.selection()[0])
+        entry = self.body.contacts[index].msg_log
+
+        self.body.msg_text.delete(0.0, 'end')
+        
+        self.body.msg_text.insert(0.0, entry)
+        # self.body.node_select()
 
     """
     Publishes to the server if online widget is checked
@@ -325,20 +352,31 @@ class MainApp(tk.Frame):
 
         contact_name = simpledialog.askstring(
             'Add Contact', 'What is the username of your new contact?')
-        self.body._add_contact(len(contact_name), contact_name)
+        self._add_contact(len(contact_name), contact_name)
+
+
+    def _add_contact(self, id, contact_name):
+        self.body.posts_tree.insert('', id, id, text=contact_name)
+        new_contact = Contact(contact_name, '')
+        self.body.contacts.append(new_contact)
+        self._current_profile.add_contact_profile(contact_name)
+        self._current_profile.save_profile(self._profile_filename)
+        
 
         #messagebox.showinfo('Hello!', 'Hi, {}'.format(name))
 
     def new_messages(self):
-        user = ds_msg.DirectMessenger(
-            '168.235.86.101', 'iJustGotDivorced', 'KanyeYE')
-        x = user._send_to_server(user.retrieve_new())
-        messages = dsp.extract_messages(x)
-        for dic in messages:
-            if len(dic) > 0:
-                self.body.set_text_entry(dic['message'])
-        self.root.after(5000, self.new_messages)
-        pass
+        # user = ds_msg.DirectMessenger(
+        #     '168.235.86.101', 'iJustGotDivorced', 'KanyeYE')
+        # x = user.retrieve_new()
+        self._current_profile.add_retrieved_msg()
+        # messages = dsp.extract_messages(x)
+        # for dic in messages:
+        #     if len(dic) > 0:
+        #         self.body.set_text_entry(dic['message'])
+
+        self.root.after(2000, self.new_messages)
+        
     """
     Call only once, upon initialization to add widgets to root frame
     """
@@ -388,7 +426,6 @@ if __name__ == "__main__":
     # All of the classes that we use, subclass Tk.Frame, since our root frame is main, we initialize
     # the class with it.
     app = MainApp(main)
-
     # When update is called, we finalize the states of all widgets that have been configured within the root frame.
     # Here, Update ensures that we get an accurate width and height reading based on the types of widgets
     # we have used.

@@ -13,7 +13,7 @@ class DirectMessage(dict):
 
         dict.__init__(self, recipient=self.recipient, message=self.message, timestamp=self.timestamp, sender=self.sender)
 
-class DirectMessenger(dict):
+class DirectMessenger():
     def __init__(self, dsuserver=None, username=None, password=None):
         self.dsuserver = dsuserver
         self.username = username
@@ -110,7 +110,8 @@ class DirectMessenger(dict):
 
 if __name__ == '__main__':
     messenger = DirectMessenger(HOST, 'markLeanneYash', 'thisisapwd')
-    messenger.send('hello2', 'leanyash')
+    a = messenger.retrieve_new()
+    print(a)
     # new = messenger.retrieve_new()
     # for message in new:
     #     print(message.message, message.recipient, message.timestamp)

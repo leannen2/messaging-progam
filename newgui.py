@@ -140,6 +140,11 @@ class Body(tk.Frame):
     """
     Call only once upon initialization to add widgets to the frame
     """
+    def night_mode_on(self):
+        pass
+
+    def night_mode_off(self):
+        pass
 
     def _draw(self):
         posts_frame = tk.Frame(master=self, width=250)
@@ -401,6 +406,22 @@ class MainApp(tk.Frame):
     
         self.root.after(2000, self.new_messages)
         
+    def night_mode_on(self):
+        self.body.msg_text.configure(bg='black', fg='white')
+        self.body.msgentry_editor.configure(bg='black', fg='white')
+        style = ttk.Style()
+        style.theme_use('clam')
+        style.configure("Treeview", background='black', fieldbackground='black',
+                        foreground='white')
+
+    def night_mode_off(self):
+        self.body.msg_text.configure(bg='white', fg='black')
+        self.body.msgentry_editor.configure(bg='white', fg='black')
+        style = ttk.Style()
+        style.theme_use('clam')
+        style.configure("Treeview", background='white', fieldbackground='white',
+                        foreground='black')
+
     """
     Call only once, upon initialization to add widgets to root frame
     """
@@ -414,6 +435,10 @@ class MainApp(tk.Frame):
         menu_bar.add_cascade(menu=menu_file, label='File')
         menu_bar.add_cascade(menu=menu_setting, label='Settings')
         menu_setting.add_command(label='Add Contact', command=self.add_contact)
+        menu_setting.add_command(
+            label='Night Mode On', command=self.night_mode_on)
+        menu_setting.add_command(
+            label='Night Mode Off', command=self.night_mode_off)
         menu_file.add_command(label='New', command=self.new_profile)
         menu_file.add_command(label='Open...', command=self.open_profile)
         menu_file.add_command(label='Close', command=self.close)

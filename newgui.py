@@ -273,16 +273,14 @@ class MainApp(tk.Frame):
 
     def new_profile(self):
         try:
-            filename = tk.filedialog.asksaveasfile(
-                filetypes=[('Distributed Social Profile', '*.dsu')])
-            self._profile_filename = filename.name
+            
             self._current_profile = MessengerProfile()
             self._current_profile.dsuserver = '168.235.86.101'
-            self._current_profile.username = 'iJustGotDivorced'
-            self._current_profile.password = 'KanyeYE'
+            self._current_profile.username = 'markLeanneYash'
+            self._current_profile.password = 'thisisapwd'
             self._current_profile.save_profile(self._profile_filename)
             self.body.reset_ui()
-            print(self._current_profile.keypair)
+            self.footer.set_status('Profile Opened')
         except:
             print('error')
 
@@ -292,18 +290,16 @@ class MainApp(tk.Frame):
     """
 
     def open_profile(self):
-        # try:
-            # filename = tk.filedialog.askopenfile(
-            #     filetypes=[('Distributed Social Profile', '*.dsu')])
-            # self._profile_filename = filename.name
-        self._current_profile = MessengerProfile()
-        self._current_profile.load_profile(self._profile_filename)
-        self.profileloaded = True
-        print(self._current_profile.username)
-        self.body.reset_ui()
-        self.body.set_contacts(self._current_profile.get_contact_objs())
-        # except:
-        #     print("Error")
+        if not self._profile_filename.exists():
+            self._profile_filename.touch()
+            self.new_profile()
+        else:
+            self._current_profile = MessengerProfile()
+            self._current_profile.load_profile(self._profile_filename)
+            self.profileloaded = True
+            self.body.reset_ui()
+            self.body.set_contacts(self._current_profile.get_contact_objs())
+            self.footer.set_status('Profile Opened')
 
     """
     Closes the program when the 'Close' menu item is clicked.

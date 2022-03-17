@@ -315,7 +315,8 @@ class MainApp(tk.Frame):
         dsm = ds_msg.DirectMessenger(HOST, self._current_profile.username, self._current_profile.password)
         dsm.send(message=msg, recipient=recipient)
         self.body.reset_ui()
-        self.body.set_contacts(self._current_profile.get_contact_objs())
+        self.open_profile()
+        # self.body.set_contacts(self._current_profile.get_contact_objs())
         index = int(self.body.posts_tree.selection()[0])
         entry = self.body.contacts[index].msg_log
 

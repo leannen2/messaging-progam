@@ -11,6 +11,7 @@ PORT = 3021
 # to your program.
 import json, os
 from pathlib import Path
+import pathlib
 
 # TODO: Import the Profile and Post classes
 from Profile import Profile, DsuFileError, DsuProfileError
@@ -43,7 +44,6 @@ class MessengerProfile(Profile):
                 self.retrieved_msg[msg.sender] = [msg]
             else:
                 self.retrieved_msg[msg.sender].append(msg)
-        self.save_profile('/Users/leannenguyen/Desktop/ics32FinalProject/messages.dsu')
 
     def add_retrieved_msg(self):
         """
@@ -51,11 +51,15 @@ class MessengerProfile(Profile):
         """
         dsm = DirectMessenger(HOST, self.username, self.password)
         new_msg = dsm.retrieve_new()
-        for msg in new_msg:
-            if msg.sender not in self.retrieved_msg:
-                self.retrieved_msg[msg.sender] = [msg]
-            else:
-                self.retrieved_msg[msg.sender].append(msg)
+        if new_msg:
+            for msg in new_msg:
+                if msg.sender not in self.retrieved_msg:
+                    self.retrieved_msg[msg.sender] = [msg]
+                else:
+                    self.retrieved_msg[msg.sender].append(msg)
+            return True
+        else:
+            return False
         # self.save_profile('/Users/leannenguyen/Desktop/ics32FinalProject/messages.dsu')
     
     def add_contact_profile(self, contact_name):
@@ -126,13 +130,17 @@ class MessengerProfile(Profile):
 
 if __name__ == '__main__':
     profile = MessengerProfile()
-    profile.load_profile('/Users/leannenguyen/Desktop/ics32FinalProject/messages.dsu')
+    # profile.load_profile('/Users/leannenguyen/Desktop/ics32FinalProject/messages.dsu')
+    p = pathlib.Path().resolve() / 'messages.dsu'
+    profile.save_profile(p)
     messages = profile.retrieved_msg
     print(messages)
+    blah = profile.add_retrieved_msg()
+    print('blah', blah)
     # print(messages)
     # for message in messages:
     #     print(message, messages[message])
-    msg_thread = profile.gen_msg_thread('leanyash')
+    # msg_thread = profile.gen_msg_thread('leanyash')
 
     # print(msg_thread)
 

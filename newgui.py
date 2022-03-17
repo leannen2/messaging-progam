@@ -399,9 +399,15 @@ class MainApp(tk.Frame):
             new = self._current_profile.add_retrieved_msg()
             self._current_profile.save_profile(self._profile_filename)
             if new:
-                self.body.update_contacts(self._current_profile.get_contact_objs)
-
-            print('hi')
+                self.body.update_contacts(self._current_profile.get_contact_objs())
+                index_of_recipient = self.body.current_recipient
+                entry = self.body.contacts[index_of_recipient].msg_log
+                
+                self.body.msg_text.delete(0.0, 'end')
+                self.body.msg_text.insert(0.0, entry)
+                print('new msg!')
+            else:
+                print('no new msg')
             # print('after:', self._current_profile.retrieved_msg)
 
     

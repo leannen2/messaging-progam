@@ -110,7 +110,7 @@ class DirectMessenger():
 
 if __name__ == '__main__':
     messenger = DirectMessenger(HOST, 'lean', 'thisisapwd')
-    messenger.send('test111', 'markLeanneYash')
+    msgs = messenger.send('it works woohoo!!', 'markLeanneYash')
     msg = DirectMessenger(HOST, 'markLeanneYash', 'thisisapwd')
     # msgs = msg.retrieve_new()
     # print(msgs)

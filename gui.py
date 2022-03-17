@@ -245,7 +245,9 @@ class MainApp(tk.Frame):
         self._profile_filename = '/Users/leannenguyen/Desktop/ics32FinalProject/messages.dsu'
         # Initialize a new NaClProfile and assign it to a class attribute.
         self._current_profile = MessengerProfile()
-
+        # self._current_profile.load_profile(self._profile_filename)
+        # self.open_profile()
+        self.profileloaded = False
         # After all initialization is complete, call the _draw method to pack the widgets
         # into the root frame
         self._draw()
@@ -281,6 +283,7 @@ class MainApp(tk.Frame):
             # self._profile_filename = filename.name
         self._current_profile = MessengerProfile()
         self._current_profile.load_profile(self._profile_filename)
+        self.profileloaded = True
         print(self._current_profile.username)
         self.body.reset_ui()
         self.body.set_contacts(self._current_profile.get_contact_objs())
@@ -366,15 +369,26 @@ class MainApp(tk.Frame):
         #messagebox.showinfo('Hello!', 'Hi, {}'.format(name))
 
     def new_messages(self):
-        # user = ds_msg.DirectMessenger(
-        #     '168.235.86.101', 'iJustGotDivorced', 'KanyeYE')
-        # x = user.retrieve_new()
-        self._current_profile.add_retrieved_msg()
-        # messages = dsp.extract_messages(x)
-        # for dic in messages:
-        #     if len(dic) > 0:
-        #         self.body.set_text_entry(dic['message'])
+        if self.profileloaded == True:
+            # user = ds_msg.DirectMessenger(
+            #     '168.235.86.101', 'iJustGotDivorced', 'KanyeYE')
+            # x = user.retrieve_new()
+            # self._current_profile.add_retrieved_msg()
+            # print(self._current_profile.retrieved_msg)
+            # messages = dsp.extract_messages(x)
+            # for dic in messages:
+            #     if len(dic) > 0:
+            #         self.body.set_text_entry(dic['message'])
+            dsm = ds_msg.DirectMessenger(HOST, self._current_profile.username, self._current_profile.password)
 
+            # retrieved = dsm.retrieve_new()
+            # if len(retrieved) > 0:
+            # print('before:', self._current_profile.retrieved_msg)
+            self._current_profile.add_retrieved_msg()
+            self._current_profile.save_profile(self._profile_filename)
+            # print('after:', self._current_profile.retrieved_msg)
+
+    
         self.root.after(2000, self.new_messages)
         
     """

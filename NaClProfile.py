@@ -56,7 +56,7 @@ class MessengerProfile(Profile):
                 self.retrieved_msg[msg.sender] = [msg]
             else:
                 self.retrieved_msg[msg.sender].append(msg)
-        self.save_profile('/Users/leannenguyen/Desktop/ics32FinalProject/messages.dsu')
+        # self.save_profile('/Users/leannenguyen/Desktop/ics32FinalProject/messages.dsu')
     
     def add_contact_profile(self, contact_name):
         self.retrieved_msg[contact_name] = []
@@ -146,7 +146,8 @@ if __name__ == '__main__':
     # dsm.send(message='hi', recipient='mark')
     # dir_msg = DirectMessage('leanyash', 'hi', time.time())
     # profile.add_sent_msg(dir_msg)
-    contacts = profile.get_contact_objs()
-    for contact in contacts:
-        print(contact.name, contact.msg_log)
-    
+    # contacts = profile.get_contact_objs()
+    # for contact in contacts:
+    #     print(contact.name, contact.msg_log)
+    profile.add_retrieved_msg()
+

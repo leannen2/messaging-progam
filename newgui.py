@@ -49,8 +49,8 @@ class Body(tk.Frame):
     def node_select(self, event):
         index = int(self.posts_tree.selection()[0])
         entry = self.contacts[index].msg_log
-        self.current_recipient = self.contacts[index].name
-        print('current recipient', self.current_recipient)
+        self.current_recipient = index
+        print('current recipient', self.contacts[self.current_recipient].name)
         self.set_text_entry(entry)
 
     def node_index_select(self):
@@ -88,6 +88,9 @@ class Body(tk.Frame):
         self.contacts = contacts
         for id, contact in enumerate(self.contacts):
             self._insert_post_tree(id, contact)
+        
+    def update_contacts(self, contacts: list):
+        self.contacts = contacts
 
     """
     Inserts a single contact to the post_tree widget.
@@ -312,14 +315,20 @@ class MainApp(tk.Frame):
         dir_msg = ds_msg.DirectMessage(recipient, msg, time.time(), self._current_profile.username)
         self._current_profile.add_sent_msg(dir_msg)
         self._current_profile.save_profile(self._profile_filename)
+        self.body.update_contacts(self._current_profile.get_contact_objs())
 
         self.body.set_bot_text_entry("")
         dsm = ds_msg.DirectMessenger(HOST, self._current_profile.username, self._current_profile.password)
         dsm.send(message=msg, recipient=recipient)
-        self.body.reset_ui()
-        self.body.set_contacts(self._current_profile.get_contact_objs())
-        index = int(self.body.posts_tree.selection()[0])
-        entry = self.body.contacts[index].msg_log
+        # self.body.reset_ui()
+        # self.body.set_contacts(self._current_profile.get_contact_objs())
+        # self.body.set_text_entry(self.body.current_recipient.msg_log)
+        # index = int(self.body.posts_tree.selection()[0])
+        
+        # print('index, ', index_of_recipient)
+        # print('contacts', self.body.contacts)
+        index_of_recipient = self.body.current_recipient
+        entry = self.body.contacts[index_of_recipient].msg_log
 
         self.body.msg_text.delete(0.0, 'end')
         
@@ -387,8 +396,12 @@ class MainApp(tk.Frame):
             # retrieved = dsm.retrieve_new()
             # if len(retrieved) > 0:
             # print('before:', self._current_profile.retrieved_msg)
-            self._current_profile.add_retrieved_msg()
+            new = self._current_profile.add_retrieved_msg()
             self._current_profile.save_profile(self._profile_filename)
+            if new:
+                self.body.update_contacts(self._current_profile.get_contact_objs)
+
+            print('hi')
             # print('after:', self._current_profile.retrieved_msg)
 
     

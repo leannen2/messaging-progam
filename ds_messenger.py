@@ -21,7 +21,9 @@ class DirectMessenger():
         self.token = self._get_pub_serv_key()
             
     def send(self, message:str, recipient:str) -> bool:
-        # returns true if message successfully sent, false if send failed.
+        """
+        Sends message to recipient and returns true if message successfully sent, false if send failed.
+        """
         direct_message = dsp.gen_direct_message(self.token, message,recipient)
         response_json = self._send_to_server(direct_message)
         response_type = dsp.extract_response_type(response_json)
@@ -31,7 +33,9 @@ class DirectMessenger():
             return False
             
     def retrieve_new(self) -> list:
-        # returns a list of DirectMessage objects containing all new messages
+        """
+        Returns a list of DirectMessage objects containing all new messages"
+        """
         new_message = dsp.gen_get_unread_message(self.token)
         response_json = self._send_to_server(new_message)
         response_type = dsp.extract_response_type(response_json)
@@ -46,7 +50,9 @@ class DirectMessenger():
 
     
     def retrieve_all(self) -> list:
-        # returns a list of DirectMessage objects containing all messages
+        """
+        Returns a list of DirectMessage objects containing all messages
+        """
         new_message = dsp.gen_all_messages(self.token)
         response_json = self._send_to_server(new_message)
         response_type = dsp.extract_response_type(response_json)
@@ -58,8 +64,10 @@ class DirectMessenger():
         
         return messages
     
-    # Sends the join message to the server and returns the token received from the server if the user successfully joins the server, Returns False if the joining was unsuccessful
     def _join(self, client, user, pwd):
+        """
+        Sends the join message to the server and returns the token received from the server if the user successfully joins the server, Returns False if the joining was unsuccessful
+        """
         join_msg = dsp.gen_join_message(user, pwd, '')
 
         client.sendall(join_msg.encode('utf-8'))
@@ -73,7 +81,9 @@ class DirectMessenger():
             return False
 
     def _send_to_server(self, message: str):
-        # Connects to server, sends message, returns response from server
+        """
+        Connects to server, sends message, returns response from server
+        """
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
     
             try:
@@ -94,7 +104,9 @@ class DirectMessenger():
                 return recv_json
         
     def _get_pub_serv_key(self):
-        # returns the server's public key 
+        """
+        Returns the server's public key 
+        """
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
     
             try:

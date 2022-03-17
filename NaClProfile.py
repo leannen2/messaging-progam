@@ -18,9 +18,6 @@ from Profile import Profile, DsuFileError, DsuProfileError
 from ds_messenger import DirectMessage,DirectMessenger
 from Contact import Contact
 import time
-# TODO: Import the NaClDSEncoder module
-    
-# TODO: Subclass the Profile class
 class MessengerProfile(Profile):
     def __init__(self):
         super().__init__(username='markLeanneYash', password='thisisapwd')
@@ -37,6 +34,9 @@ class MessengerProfile(Profile):
         self.retrieved_msg[dir_msg.recipient].append(dir_msg)
 
     def add_all_msg(self):
+        """
+        Adds all messages as DirectMessage objects into set_msg attribute
+        """
         dsm = DirectMessenger(HOST, self.username, self.password)
         new_msg = dsm.retrieve_all()
         for msg in new_msg:
@@ -63,19 +63,26 @@ class MessengerProfile(Profile):
         # self.save_profile('/Users/leannenguyen/Desktop/ics32FinalProject/messages.dsu')
     
     def add_contact_profile(self, contact_name):
+        """
+        Adds new contact into retrieved_msg
+        """
         self.retrieved_msg[contact_name] = []
 
     def get_contact_objs(self):
+        """
+        Creates list of Contact objects from the retrieved messages and returns the list
+        """
         contacts = []
-        # for contact, msg_thread in self.get_msg_log_for_all_contacts():
-        #     new_contact = Contact(contact, msg_thread)
-        #     contacts.append(new_contact)
         for contact in self.retrieved_msg:
             new_contact = Contact(contact, self.gen_msg_thread(contact))
             contacts.append(new_contact)
         return contacts
 
     def get_msg_from_contact(self, contact: str):
+        """
+        Returns list of retrieved messages as DirectMessage objects with given contact
+        """
+
         if contact in self.retrieved_msg:
             return self.retrieved_msg[contact]
         else:
@@ -83,12 +90,18 @@ class MessengerProfile(Profile):
             return []
 
     def get_msg_log_for_all_contacts(self):
+        """
+        Returns dictionary of all contacts and their message logs
+        """
         msg_dict = {}
         for contact in self.retrieved_msg:
             msg_dict[contact] = self.gen_msg_thread(contact)
         return msg_dict
     
     def gen_msg_thread(self, contact: str):
+        """
+        Generates and returns a string with all messages exchanged with a contact
+        """
         retrieved = self.get_msg_from_contact(contact)
         msg_thread = ''
         for msg in retrieved:
@@ -99,9 +112,15 @@ class MessengerProfile(Profile):
         return msg_thread
 
     def get_msg(self):
+        """
+        Returns retrieved_msg
+        """
         return self.retrieved_msg
 
     def load_profile(self, path: str) -> None:
+        """
+        Loads existing DSU File into profile object
+        """
         p = Path(path)
 
         if os.path.exists(p) and p.suffix == '.dsu':

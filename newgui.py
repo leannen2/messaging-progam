@@ -21,6 +21,12 @@ import ds_messenger as ds_msg
 from Contact import Contact
 import time, pathlib
 
+class ProfileIsNotOpenError(Exception):
+    pass
+
+class NoRecipientSelectedError(Exception):
+    pass
+
 
 """
 A subclass of tk.Frame that is responsible for drawing all of the widgets
@@ -153,6 +159,7 @@ class Body(tk.Frame):
         scroll_frame.pack(fill=tk.BOTH, side=tk.LEFT, expand=False)
 
         self.msg_text = tk.Text(messages_frame, width=0)
+        self.msg_text.configure(state='disabled')
         self.msg_text.pack(fill=tk.BOTH, side=tk.LEFT, expand=True, padx=0, pady=0)
 
         msg_scrollbar = tk.Scrollbar(
@@ -208,7 +215,10 @@ class Footer(tk.Frame):
 
     def save_click(self):
         if self._save_callback is not None:
-            self._save_callback()
+            try:
+                self._save_callback()
+            except Exception as e:
+                self.set_status(e)
 
     """
     Updates the text that is displayed in the footer_label widget
@@ -231,7 +241,7 @@ class Footer(tk.Frame):
         self.chk_button.configure(command=self.online_click)
         self.chk_button.pack(fill=tk.BOTH, side=tk.RIGHT)'''
 
-        self.footer_label = tk.Label(master=self, text="Ready.")
+        self.footer_label = tk.Label(master=self, text="Open.")
         self.footer_label.pack(fill=tk.BOTH, side=tk.LEFT, padx=5)
 
 
@@ -249,7 +259,7 @@ class MainApp(tk.Frame):
         self._is_online = False
         self._profile_filename = pathlib.Path().resolve() / 'messages.dsu'
         # Initialize a new NaClProfile and assign it to a class attribute.
-        self._current_profile = MessengerProfile()
+        self._current_profile = None
         # self._current_profile.load_profile(self._profile_filename)
         # self.open_profile()
         self.profileloaded = False
@@ -307,33 +317,33 @@ class MainApp(tk.Frame):
     """
 
     def save_profile(self):
-        # contact = Contact(self.body.node_index_select().name, self.body.get_text_entry())
-        # self.body.insert_contact(contact)
-        recipient = self.body.node_index_select().name
-        msg = self.body.get_text_entry()
-        
-        dir_msg = ds_msg.DirectMessage(recipient, msg, time.time(), self._current_profile.username)
-        self._current_profile.add_sent_msg(dir_msg)
-        self._current_profile.save_profile(self._profile_filename)
-        self.body.update_contacts(self._current_profile.get_contact_objs())
+        """
+        Sends message to selected recipient
+        """
+        if self.profileloaded:
+            if self.body.current_recipient is not None:
+                recipient = self.body.node_index_select().name
+                msg = self.body.get_text_entry()
+                
+                dir_msg = ds_msg.DirectMessage(recipient, msg, time.time(), self._current_profile.username)
+                self._current_profile.add_sent_msg(dir_msg)
+                self._current_profile.save_profile(self._profile_filename)
+                self.body.update_contacts(self._current_profile.get_contact_objs())
 
-        self.body.set_bot_text_entry("")
-        dsm = ds_msg.DirectMessenger(HOST, self._current_profile.username, self._current_profile.password)
-        dsm.send(message=msg, recipient=recipient)
-        # self.body.reset_ui()
-        # self.body.set_contacts(self._current_profile.get_contact_objs())
-        # self.body.set_text_entry(self.body.current_recipient.msg_log)
-        # index = int(self.body.posts_tree.selection()[0])
-        
-        # print('index, ', index_of_recipient)
-        # print('contacts', self.body.contacts)
-        index_of_recipient = self.body.current_recipient
-        entry = self.body.contacts[index_of_recipient].msg_log
+                self.body.set_bot_text_entry("")
+                dsm = ds_msg.DirectMessenger(HOST, self._current_profile.username, self._current_profile.password)
+                dsm.send(message=msg, recipient=recipient)
+                index_of_recipient = self.body.current_recipient
+                entry = self.body.contacts[index_of_recipient].msg_log
 
-        self.body.msg_text.delete(0.0, 'end')
-        
-        self.body.msg_text.insert(0.0, entry)
-        # self.body.node_select()
+                self.body.msg_text.delete(0.0, 'end')
+                
+                self.body.msg_text.insert(0.0, entry)
+                self.footer.set_status('Message sent successfully!')
+            else:
+                raise NoRecipientSelectedError ('Please select a contact.')
+        else:
+            raise ProfileIsNotOpenError ('Open first.')
 
     """
     Publishes to the server if online widget is checked
@@ -358,11 +368,6 @@ class MainApp(tk.Frame):
             self._is_online = False
 
     def add_contact(self):
-        # response = messagebox.askokcancel(
-        # 'Add Username', "Enter username of recipient you wish to add")
-
-        # if response == 1:
-        # print('yes')
 
         contact_name = simpledialog.askstring(
             'Add Contact', 'What is the username of your new contact?')
@@ -376,39 +381,26 @@ class MainApp(tk.Frame):
         self.body.contacts.append(new_contact)
         self._current_profile.add_contact_profile(contact_name)
         self._current_profile.save_profile(self._profile_filename)
+        self.footer.set_status('Contact Added')
         
 
         #messagebox.showinfo('Hello!', 'Hi, {}'.format(name))
 
     def new_messages(self):
         if self.profileloaded == True:
-            # user = ds_msg.DirectMessenger(
-            #     '168.235.86.101', 'iJustGotDivorced', 'KanyeYE')
-            # x = user.retrieve_new()
-            # self._current_profile.add_retrieved_msg()
-            # print(self._current_profile.retrieved_msg)
-            # messages = dsp.extract_messages(x)
-            # for dic in messages:
-            #     if len(dic) > 0:
-            #         self.body.set_text_entry(dic['message'])
-            dsm = ds_msg.DirectMessenger(HOST, self._current_profile.username, self._current_profile.password)
 
-            # retrieved = dsm.retrieve_new()
-            # if len(retrieved) > 0:
-            # print('before:', self._current_profile.retrieved_msg)
             new = self._current_profile.add_retrieved_msg()
             self._current_profile.save_profile(self._profile_filename)
             if new:
                 self.body.update_contacts(self._current_profile.get_contact_objs())
                 index_of_recipient = self.body.current_recipient
                 entry = self.body.contacts[index_of_recipient].msg_log
-                
+
                 self.body.msg_text.delete(0.0, 'end')
                 self.body.msg_text.insert(0.0, entry)
                 print('new msg!')
             else:
                 print('no new msg')
-            # print('after:', self._current_profile.retrieved_msg)
 
     
         self.root.after(2000, self.new_messages)
